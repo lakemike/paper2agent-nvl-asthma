@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0c3b4a" />
+    <meta name="description" content="Quellengebundener Chat mit digitalisierten wissenschaftlichen Dokumenten." />
+    <title>Paper2Agent · NVL Asthma</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand-mark" aria-hidden="true">P2A</div>
+      <div>
+        <p class="eyebrow">Paper2Agent Web Runtime</p>
+        <h1>Leitlinien verständlich befragen</h1>
+      </div>
+      <a class="source-link" href="https://github.com/lakemike/paper2agent-nvl-asthma" rel="noreferrer">Quellcode</a>
+    </header>
+    <main class="layout">
+      <aside class="sidebar" aria-label="Dokumente">
+        <p class="eyebrow">Dokument</p>
+        <div id="paper-list" class="paper-list" aria-live="polite"></div>
+        <section class="safety-note">
+          <strong>Kein Ersatz für ärztliche Beratung</strong>
+          <p>Antworten sind eine quellengebundene Orientierung und können Fehler enthalten. Klinische Entscheidungen immer am Original und fachlich prüfen.</p>
+        </section>
+      </aside>
+      <section class="chat-shell" aria-label="Chat">
+        <div id="document-banner" class="document-banner"></div>
+        <div id="messages" class="messages" aria-live="polite">
+          <article class="message assistant">
+            <div class="avatar" aria-hidden="true">A</div>
+            <div>
+              <strong>Asthma-Leitlinienagent</strong>
+              <p id="welcome-copy">Dokumentstatus wird geladen …</p>
+            </div>
+          </article>
+        </div>
+        <div id="starter-prompts" class="starter-prompts" hidden>
+          <button type="button">Welche Kriterien nennt die Leitlinie für die Asthmakontrolle?</button>
+          <button type="button">Was empfiehlt sie bei einem Asthmaanfall bei Erwachsenen?</button>
+          <button type="button">Welche Besonderheiten gelten in der Schwangerschaft?</button>
+        </div>
+        <form id="chat-form" class="composer">
+          <label for="question">Frage an das Dokument</label>
+          <div class="composer-row">
+            <textarea id="question" rows="2" maxlength="2000" placeholder="Frage mit möglichst vollständigem Kontext …" disabled></textarea>
+            <button id="send-button" type="submit" disabled>Senden</button>
+          </div>
+          <p id="composer-status" class="composer-status"></p>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

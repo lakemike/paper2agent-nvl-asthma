@@ -15,3 +15,17 @@ venv/
 .env.*
 !.env.example
 !.env.template
+
+# Web runtime dependencies, build output, and protected source material
+node_modules/
+data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+web-dist/
+coverage/
+source/*
+!source/.gitkeep
+secrets/
+generated/
+*.pdf

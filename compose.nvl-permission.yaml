@@ -1,0 +1,17 @@
+services:
+  web:
+    environment:
+      SOURCE_USE_PERMISSION_GRANTED: "true"
+      PERMISSION_EVIDENCE_FILE: /run/secrets/nvl_permission
+    secrets:
+      - nvl_permission
+  ingest:
+    environment:
+      SOURCE_USE_PERMISSION_GRANTED: "true"
+      PERMISSION_EVIDENCE_FILE: /run/secrets/nvl_permission
+    secrets:
+      - nvl_permission
+
+secrets:
+  nvl_permission:
+    file: ./secrets/nvl-permission.txt

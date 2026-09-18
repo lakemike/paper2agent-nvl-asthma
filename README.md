@@ -1,225 +1,105 @@
 <p align="center">
-  <img src="./logo/paper2agent_logo.png" alt="Paper2Agent Logo" width="600px" />
+  <img src="./logo/paper2agent_logo.png" alt="Paper2Agent Logo" width="600" />
 </p>
 
-# Paper2Agent: Reimagining Papers As AI Agents
+# Paper2Agent · NVL Asthma web runtime
 
-## 📖 Overview
-`Paper2Agent` is a multi-agent AI system that automatically transforms research papers into interactive AI agents with minimal human input. Explore [demos](#-demos) of Paper2Agent-generated agents, or try it yourself at [paper2agent.ai](https://paper2agent.ai).
+This public fork of [jmiao24/Paper2Agent](https://github.com/jmiao24/Paper2Agent) extends the upstream conversion skill with an auditable, citation-first web application. The target is a deployable page where an authorized source can be selected and queried, beginning with the **Nationale VersorgungsLeitlinie Asthma, Version 5.0 (2024)**.
 
-Paper2Agent coordinates parallel specialist agents to turn scientific papers into reliable MCP servers and skills.
+> **Current state:** repository, web UI, API, retrieval database, guarded ingest job, Docker deployment, tests, and CI are present. The NVL itself is deliberately **rights-locked**. Its PDF, prose, embeddings, and index are not in this repository and the public chat cannot be activated until the NVL rights holders grant written permission for this use. See [RIGHTS.md](RIGHTS.md).
 
-## 🚀 Quick Start
+## Why this fork adds a runtime
 
-### Basic Usage
+The upstream MIT-licensed repository contains the Paper2Agent orchestration skill, converters, verification workflow, and examples. It does **not** publish the source of the hosted [`paper2agent.ai/live`](https://paper2agent.ai/live) runtime. This fork keeps the upstream history and skill intact, then adds a compact open implementation that reaches a real browser page and server API.
 
-The simplest way to use Paper2Agent is to ask your coding agent (Claude Code, Codex, etc.) to install the paper2agent skill, then agentify a paper alongside its code repository.
+## What is included
 
-```text
-Read https://github.com/jmiao24/Paper2Agent and install the paper2agent skill
-from skills/paper2agent for this coding agent.
+- the complete upstream Paper2Agent skill under `skills/paper2agent/`;
+- a responsive no-build web client in `web/`;
+- a Node 24 API with server-side OpenRouter support;
+- page-anchored SQLite FTS5 retrieval and visible page references;
+- an operator-only PDF ingest command with hash and page-count verification;
+- hard rights activation gates;
+- loopback-first Docker Compose deployment with read-only container hardening;
+- unit tests, repository leak checks, Docker health check, and GitHub Actions CI.
 
-Use the paper2agent skill to agentify this paper and its associated files,
-alongside its code repository if available. Follow the skill instructions
-for the workflow, verification, and final delivery.
+## Safe quick start
 
-Paper and associated files: <PAPER_URL_OR_LOCAL_FILES>
-Code repository (if available): <GITHUB_URL_OR_LOCAL_PATH>
-Output directory: <PROJECT_DIR>
-```
-
-If the skill does not appear after installation, restart your coding agent. For manual installation, see [Installation & Setup](#installation).
-
-See the [skill instructions](skills/paper2agent/SKILL.md) for supported inputs, workflows, and deliverables.
-
-### Advanced Usage
-
-#### Targeted Tasks or Tutorials
-
-Specify the scientific tasks, tutorial title, or source URL to focus on:
-
-```text
-Use the paper2agent skill to convert <GITHUB_URL> into MCP tools in <PROJECT_DIR>.
-Focus on <TASKS, TUTORIAL_TITLE, or SOURCE_URL>.
-```
-
-#### Repository with API Key
-
-Make credentials available through your host's secret mechanism or process environment, then tell the agent the variable name:
-
-```text
-Use the paper2agent skill to convert <GITHUB_URL> into MCP tools in <PROJECT_DIR>.
-Read the required API key from the environment variable <VARIABLE_NAME>.
-```
-
-Credentials stay outside generated code, notebooks, reports, and the delivered ZIP.
-
-### Examples
-
-The examples below use Claude Code's `/paper2agent` invocation. In Codex, replace it with `$paper2agent`.
-
-#### TISSUE Agent
-
-Create an AI agent from the [TISSUE](https://github.com/sunericd/TISSUE) research paper codebase for uncertainty-calibrated single-cell spatial transcriptomics analysis:
-
-```text
-/paper2agent Convert https://github.com/sunericd/TISSUE into tested MCP tools in TISSUE_Agent.
-```
-
-#### Scanpy Agent for Preprocessing and Clustering
-
-Create an AI agent from the [Scanpy](https://github.com/scverse/scanpy) research paper codebase for single-cell analysis preprocessing and clustering:
-
-```text
-/paper2agent Convert https://github.com/scverse/scanpy into tested MCP tools in Scanpy_Agent.
-Focus on the "Preprocessing and clustering" tutorial.
-```
-
-You can also provide a tutorial URL:
-
-```text
-/paper2agent Convert https://github.com/scverse/scanpy into tested MCP tools in Scanpy_Agent.
-Focus on https://github.com/scverse/scanpy/blob/main/docs/tutorials/basics/clustering.ipynb.
-```
-
-#### AlphaGenome Agent
-
-Create an AI agent from the [AlphaGenome](https://github.com/google-deepmind/alphagenome) research paper codebase for genomic data interpretation:
-
-```text
-/paper2agent Convert https://github.com/google-deepmind/alphagenome into tested MCP tools in AlphaGenome_Agent.
-Read the API key from the environment variable ALPHAGENOME_API_KEY.
-```
-
-<a id="installation"></a>
-
-## ⚙️ Installation & Setup
-
-### Prerequisites
-
-- **Coding-agent host:** A host with skill support, shell access, and parallel subagent spawning enabled. The coordinator launches specialists and fresh verifier agents through the host.
-- **Runtime access:** Python and Git, plus any R, native CLI, data, API, or GPU requirements of the selected repository. The skill prepares isolated project environments and records tested versions.
-
-### Manual Installation Steps
-
-To have your coding agent install the skill, use the [Quick Start](#-quick-start) prompt. To install it yourself, follow the steps below.
-
-1. **Clone the Paper2Agent repository**
-
-   ```bash
-   git clone https://github.com/jmiao24/Paper2Agent.git
-   cd Paper2Agent
-   ```
-
-2. **Install the entire skill folder for your host**
-
-   Choose the command for your host. Copy the entire folder, including all subdirectories and supporting files.
-
-   **Claude Code** — personal skill location from the [Claude Code skills documentation](https://code.claude.com/docs/en/skills):
-
-   ```bash
-   mkdir -p "$HOME/.claude/skills/paper2agent"
-   cp -R skills/paper2agent/. "$HOME/.claude/skills/paper2agent/"
-   ```
-
-   **Codex** — personal skill location from the [official OpenAI skills documentation](https://learn.chatgpt.com/docs/build-skills):
-
-   ```bash
-   mkdir -p "$HOME/.agents/skills/paper2agent"
-   cp -R skills/paper2agent/. "$HOME/.agents/skills/paper2agent/"
-   ```
-
-3. **Start your coding agent in your analysis workspace**
-
-   Open Claude Code or Codex in the directory where you want to work, then use the [Quick Start](#-quick-start) prompt. If the skill does not appear, restart the coding agent. The skill installs the generated server's dependencies in its project environment during conversion.
-
-## 🤖 How to Create a Paper Agent?
-
-Connect the generated Paper MCP server to an AI coding agent, such as [Claude Code](https://www.anthropic.com/claude-code), Codex, or the [Google Gemini CLI](https://google-gemini.github.io/gemini-cli/), to use its scientific tools in conversation.
-
-### Connect a Generated Local MCP Server
-
-Extract the delivered ZIP and follow its `USAGE.md` to install dependencies and configure your MCP client. The instructions include the tested interpreter, server entry point, required environment variables, and supported platforms.
-
-To have the coding agent configure the connection, explicitly request it after conversion:
-
-```text
-Connect the generated MCP server to my coding-agent client using its USAGE.md.
-```
-
-### Connect a Remote MCP Server Hosted on Hugging Face
-
-You can also use an existing server from [Connectable Paper MCP Servers](#-connectable-paper-mcp-servers). Open the hosted service's instructions for its MCP endpoint, transport, and authentication requirements.
-
-For an HTTP endpoint in Claude Code, follow the [MCP connection documentation](https://code.claude.com/docs/en/mcp):
+The default starts in mock mode and shows the real rights status. It does not call a model or ingest protected content.
 
 ```bash
-claude mcp add --transport http <MCP_NAME> <MCP_ENDPOINT_URL>
+cp .env.example .env
+docker compose up --build
 ```
 
-For example, the [hosted AlphaGenome MCP server](https://Paper2Agent-alphagenome-mcp.hf.space) can provide tools for genomic data interpretation. Once connected, you can input a query like:
+Open <http://127.0.0.1:8080>. The NVL card will remain locked by design.
 
-```text
-Analyze heart gene expression data with AlphaGenome MCP to identify the causal gene
-for the variant chr11:116837649:T>G, associated with Hypoalphalipoproteinemia.
-```
-
-### Verification
-
-In Claude Code, check the server's connection status with:
+Run local checks:
 
 ```bash
-claude mcp list
+npm ci --ignore-scripts
+npm run ci
+docker build -t paper2agent-nvl-asthma:test .
 ```
 
-Or use `/mcp` inside Claude Code. A successful connection should appear in the server list; use a tool call to confirm the scientific workflow works with your inputs. The screenshot below shows the AlphaGenome MCP server connected in Claude Code.
+## Activation after written permission
 
-<img width="620" alt="Claude Code showing the AlphaGenome MCP server connected" src="assets/claude-code-mcp.png" />
+Only after the permission scope explicitly covers the intended electronic/public use:
 
-## 🎬 Demos
-Below, we showcase demos of AI agents created by Paper2Agent, illustrating how each agent applies the tools from its source paper to tackle scientific tasks.
-### 🧬 AlphaGenome Agent for Genomic Data Interpretation
-Example query:
+1. Place the official PDF at `source/nvl-002l_S3_Asthma_2024-08.pdf`.
+2. Place a private permission record at `secrets/nvl-permission.txt`.
+3. Set `SOURCE_USE_PERMISSION_GRANTED=true`.
+4. Build the private index:
+
+   ```bash
+   docker compose -f compose.yaml -f compose.nvl-permission.yaml \
+     --profile tools run --rm ingest
+   ```
+
+5. Start the rights-enabled mock deployment and verify retrieval:
+
+   ```bash
+   docker compose -f compose.yaml -f compose.nvl-permission.yaml up --build
+   ```
+
+6. Add a **dedicated, model-restricted, hard-budget-capped** OpenRouter key at `secrets/openrouter.key`, then enable the model provider:
+
+   ```bash
+   docker compose \
+     -f compose.yaml \
+     -f compose.nvl-permission.yaml \
+     -f compose.openrouter.yaml \
+     up -d --build
+   ```
+
+Do not reuse a broad personal key or the OpenClaw agent's own runtime key for a public website.
+
+## API
+
+- `GET /healthz` — liveness and non-secret runtime state
+- `GET /api/papers` — configured papers, rights/index status
+- `POST /api/chat` — source-bound chat for an available paper
+
+Chat requests are not persisted. The model receives only the recent bounded conversation and retrieved source chunks. The browser receives the answer and page/heading references, never the raw chunks or provider key.
+
+## Deployment model
+
+The container binds to `127.0.0.1` by default. Put a TLS reverse proxy or tunnel in front of it and keep the backend port off the LAN. See [docs/architecture.md](docs/architecture.md) and [SECURITY.md](SECURITY.md).
+
+## Upstream sync
+
+```bash
+git remote add upstream https://github.com/jmiao24/Paper2Agent.git
+git fetch upstream
+git merge upstream/main
 ```
-Analyze heart gene expression data with AlphaGenome MCP to identify the causal gene
-for the variant chr11:116837649:T>G, associated with Hypoalphalipoproteinemia.
-```
 
-https://github.com/user-attachments/assets/34aad25b-42b3-4feb-b418-db31066e7f7b
+Review every upstream change before deployment. Never commit source documents or runtime data during a sync.
 
-### 🗺️ TISSUE Agent for Uncertainty-Aware Spatial Transcriptomics Analysis
-Example query:
-```
-Calculate the 95% prediction interval for the spatial gene expression prediction of gene Acta2 using TISSUE MCP.
+## License and attribution
 
-This is my data:
-Spatial count matrix: Spatial_count.txt
-Spatial locations: Locations.txt
-scRNA-seq count matrix: scRNA_count.txt
-```
+Paper2Agent code remains under the upstream [MIT License](LICENSE), copyright Jiacheng Miao. New code in this fork is contributed under the same license. This license does **not** apply to third-party papers or guidelines. The NVL rights remain with its named rights holders.
 
-https://github.com/user-attachments/assets/2c8f6368-fa99-4e6e-b7b5-acc12f741655
+## Medical safety
 
-### 🧫 Scanpy Agent for Single-Cell Data Preprocessing
-Example query:
-```
-Use Scanpy MCP to preprocess and cluster the single-cell dataset pbmc_all.h5ad.
-```
-
-## 🔗 Connectable Paper MCP Servers
-* AlphaGenome: https://Paper2Agent-alphagenome-mcp.hf.space
-* Scanpy: https://Paper2Agent-scanpy-mcp.hf.space
-* TISSUE: https://Paper2Agent-tissue-mcp.hf.space
-
-## 📚 Citation
-```
-@article{miao2026paper2agent,
-  title={Reimagining research papers as interactive and reliable {AI} agents},
-  author={Miao, Jiacheng and Davis, Joe R. and Zhang, Yaohui and Pritchard, Jonathan K. and Zou, James},
-  journal={Nature},
-  year={2026},
-  doi={10.1038/s41586-026-11044-y},
-  url={https://www.nature.com/articles/s41586-026-11044-y}
-}
-```
-
+This software supports document retrieval and summarization. It is not a medical device and does not replace professional diagnosis, treatment, or review of the current official guideline.

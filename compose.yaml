@@ -1,0 +1,46 @@
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    init: true
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    ports:
+      - "127.0.0.1:${PORT:-8080}:8080"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8080
+      DATA_DIR: /data
+      LLM_MODE: ${LLM_MODE:-mock}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-deepseek/deepseek-v4.1-flash}
+      MAX_REQUESTS_PER_HOUR: ${MAX_REQUESTS_PER_HOUR:-30}
+      MAX_CONTEXT_CHUNKS: ${MAX_CONTEXT_CHUNKS:-8}
+      TRUST_PROXY_LOOPBACK: ${TRUST_PROXY_LOOPBACK:-true}
+      SOURCE_USE_PERMISSION_GRANTED: ${SOURCE_USE_PERMISSION_GRANTED:-false}
+      PERMISSION_EVIDENCE_FILE: ${PERMISSION_EVIDENCE_FILE:-}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
+    volumes:
+      - paper2agent-data:/data
+
+  ingest:
+    profiles: ["tools"]
+    build: .
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    environment:
+      DATA_DIR: /data
+      SOURCE_USE_PERMISSION_GRANTED: ${SOURCE_USE_PERMISSION_GRANTED:-false}
+      PERMISSION_EVIDENCE_FILE: ${PERMISSION_EVIDENCE_FILE:-}
+    volumes:
+      - paper2agent-data:/data
+      - ./source:/source:ro
+    command: ["node", "scripts/ingest-guideline.mjs", "--paper", "nvl-asthma-2024", "--pdf", "/source/nvl-002l_S3_Asthma_2024-08.pdf"]
+
+volumes:
+  paper2agent-data:
