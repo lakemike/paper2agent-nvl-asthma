@@ -1,0 +1,17 @@
+{
+  "name": "paper2agent-nvl-asthma",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Citation-first web runtime for Paper2Agent paper skills, starting with the NVL Asthma 2024 once publication permission is documented.",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "start": "node server/server.mjs",
+    "dev": "NODE_ENV=development node --watch server/server.mjs",
+    "ingest:nvl": "node scripts/ingest-guideline.mjs --paper nvl-asthma-2024",
+    "check": "node --check server/server.mjs && node --check scripts/ingest-guideline.mjs && node --check web/app.js && node scripts/check-repository.mjs",
+    "test": "node --test test/*.test.mjs",
+    "ci": "npm run check && npm test"
+  },
+  "license": "MIT"
+}

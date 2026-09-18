@@ -1,0 +1,20 @@
+{
+  "id": "nvl-asthma-2024",
+  "title": "Nationale VersorgungsLeitlinie Asthma",
+  "shortTitle": "NVL Asthma",
+  "version": "5.0",
+  "year": 2024,
+  "locale": "de-DE",
+  "awmfRegister": "nvl-002",
+  "sourceUrl": "https://register.awmf.org/de/leitlinien/detail/nvl-002",
+  "officialPdfUrl": "https://register.awmf.org/assets/guidelines/nvl-002l_S3_Asthma_2024-08.pdf",
+  "expectedSha256": "8b9540b03b4cd3c8f0276e07bf93dac20aa44e9a4dee6e29d1648124d1baa126",
+  "expectedPages": 183,
+  "citation": "Bundesärztekammer (BÄK), Kassenärztliche Bundesvereinigung (KBV), Arbeitsgemeinschaft der Wissenschaftlichen Medizinischen Fachgesellschaften (AWMF). Nationale VersorgungsLeitlinie Asthma, Version 5.0. 2024.",
+  "rights": {
+    "status": "restricted",
+    "requiresWrittenPermission": true,
+    "notice": "Der Volltext ist urheberrechtlich geschützt. Öffentliche elektronische Nutzung wird erst nach dokumentierter schriftlicher Zustimmung der Träger des NVL-Programms aktiviert.",
+    "reference": "Langfassung, Seite 2"
+  }
+}
