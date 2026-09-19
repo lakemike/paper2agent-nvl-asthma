@@ -6,7 +6,7 @@
 
 This public fork of [jmiao24/Paper2Agent](https://github.com/jmiao24/Paper2Agent) extends the upstream conversion skill with an auditable, citation-first web application. The target is a deployable page where an authorized source can be selected and queried, beginning with the **Nationale VersorgungsLeitlinie Asthma, Version 5.0 (2024)**.
 
-> **Current state:** repository, web UI, API, retrieval database, guarded ingest job, Docker deployment, tests, and CI are present. The NVL itself is deliberately **rights-locked**. Its PDF, prose, embeddings, and index are not in this repository and the public chat cannot be activated until the NVL rights holders grant written permission for this use. See [RIGHTS.md](RIGHTS.md).
+> **Current state:** repository, web UI, API, retrieval database, guarded ingest job, Docker deployment, tests, and CI are present. Restricted source material and permission evidence stay private even after approval. The public runtime is activated only when the documented permission scope passes the gate in [RIGHTS.md](RIGHTS.md).
 
 ## Why this fork adds a runtime
 
@@ -73,6 +73,8 @@ Only after the permission scope explicitly covers the intended electronic/public
    ```
 
 Do not reuse a broad personal key or the OpenClaw agent's own runtime key for a public website.
+
+The hardened AgenticLinux service layout and verification checklist are in [deploy/README.md](deploy/README.md).
 
 ## API
 

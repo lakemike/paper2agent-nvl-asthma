@@ -3,7 +3,7 @@ import { readFileSync, statSync } from "node:fs";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chunkCount, openDatabase, retrieveChunks } from "../lib/database.mjs";
-import { answerWithModel } from "../lib/openrouter.mjs";
+import { answerWithModel, modelCredentialConfigured } from "../lib/openrouter.mjs";
 import { loadPaperConfigs } from "../lib/papers.mjs";
 import { permissionStatus } from "../lib/rights.mjs";
 
@@ -12,12 +12,31 @@ const WEB_ROOT = join(ROOT, "web");
 const PAPER_ROOT = join(ROOT, "config", "papers");
 const DATA_DIR = process.env.DATA_DIR || join(ROOT, "data");
 const DB_PATH = join(DATA_DIR, "paper2agent.sqlite");
-const PORT = Number(process.env.PORT || 8080);
 const HOST = process.env.HOST || "127.0.0.1";
 const MAX_BODY_BYTES = 24 * 1024;
+
+function boundedInteger(name, fallback, minimum, maximum) {
+  const raw = process.env[name];
+  if (raw === undefined || raw === "") return fallback;
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < minimum || value > maximum) {
+    throw new Error(`${name} must be an integer between ${minimum} and ${maximum}`);
+  }
+  return value;
+}
+
+const PORT = boundedInteger("PORT", 8080, 1, 65535);
+const LLM_MODE = process.env.LLM_MODE ?? "mock";
+if (!["mock", "openrouter"].includes(LLM_MODE)) throw new Error("LLM_MODE must be mock or openrouter");
+const MAX_REQUESTS_PER_HOUR = boundedInteger("MAX_REQUESTS_PER_HOUR", 30, 1, 1000);
+const MAX_CONTEXT_CHUNKS = boundedInteger("MAX_CONTEXT_CHUNKS", 8, 3, 12);
+const MAX_CONCURRENT_CHATS = boundedInteger("MAX_CONCURRENT_CHATS", 4, 1, 32);
+const MAX_TRACKED_CLIENTS = boundedInteger("MAX_TRACKED_CLIENTS", 10000, 100, 100000);
+boundedInteger("MODEL_MAX_TOKENS", 1400, 200, 4000);
 const papers = loadPaperConfigs(PAPER_ROOT);
 const db = openDatabase(DB_PATH);
 const rateWindows = new Map();
+let activeChats = 0;
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -36,7 +55,10 @@ function securityHeaders(contentType = "application/json; charset=utf-8") {
     "referrer-policy": "no-referrer",
     "x-content-type-options": "nosniff",
     "x-frame-options": "DENY",
+    "cross-origin-opener-policy": "same-origin",
+    "cross-origin-resource-policy": "same-origin",
     "permissions-policy": "camera=(), microphone=(), geolocation=()",
+    "strict-transport-security": "max-age=31536000; includeSubDomains",
   };
 }
 
@@ -80,15 +102,18 @@ function clientIp(request) {
 
 function rateAllowed(request) {
   const now = Date.now();
-  const max = Number(process.env.MAX_REQUESTS_PER_HOUR || 30);
   const ip = clientIp(request);
   const current = rateWindows.get(ip);
   if (!current || now - current.startedAt >= 3_600_000) {
+    for (const [key, window] of rateWindows) {
+      if (now - window.startedAt >= 3_600_000) rateWindows.delete(key);
+    }
+    if (!rateWindows.has(ip) && rateWindows.size >= MAX_TRACKED_CLIENTS) return false;
     rateWindows.set(ip, { startedAt: now, count: 1 });
     return true;
   }
   current.count += 1;
-  return current.count <= max;
+  return current.count <= MAX_REQUESTS_PER_HOUR;
 }
 
 async function readJson(request) {
@@ -126,18 +151,26 @@ async function handleChat(request, response) {
   if (question.length < 3 || question.length > 2000) {
     return sendJson(response, 400, { error: "Die Frage muss zwischen 3 und 2000 Zeichen lang sein." });
   }
-  const limit = Math.min(12, Math.max(3, Number(process.env.MAX_CONTEXT_CHUNKS || 8)));
-  const chunks = retrieveChunks(db, paper.id, question, limit);
+  const chunks = retrieveChunks(db, paper.id, question, MAX_CONTEXT_CHUNKS);
   if (!chunks.length) {
     return sendJson(response, 422, { error: "Zu dieser Frage wurden keine belastbaren Leitlinienabschnitte gefunden." });
   }
-  const answer = await answerWithModel({
-    env: process.env,
-    paper,
-    question,
-    history: sanitizeHistory(body.history),
-    chunks,
-  });
+  if (activeChats >= MAX_CONCURRENT_CHATS) {
+    return sendJson(response, 503, { error: "Der Dienst ist ausgelastet. Bitte gleich erneut versuchen." });
+  }
+  activeChats += 1;
+  let answer;
+  try {
+    answer = await answerWithModel({
+      env: process.env,
+      paper,
+      question,
+      history: sanitizeHistory(body.history),
+      chunks,
+    });
+  } finally {
+    activeChats -= 1;
+  }
   const sources = chunks.map((chunk) => ({
     pageStart: chunk.page_start,
     pageEnd: chunk.page_end,
@@ -172,7 +205,16 @@ export function createAppServer() {
     try {
       if (request.method === "GET" && url.pathname === "/healthz") {
         const indexedPapers = [...papers.values()].filter((paper) => chunkCount(db, paper.id) > 0).length;
-        sendJson(response, 200, { status: "ok", indexedPapers, llmMode: process.env.LLM_MODE || "mock" });
+        sendJson(response, 200, { status: "ok", indexedPapers, llmMode: LLM_MODE });
+      } else if (request.method === "GET" && url.pathname === "/readyz") {
+        const availablePapers = [...papers.values()].filter((paper) => paperView(paper).available).length;
+        const ready = availablePapers > 0 && modelCredentialConfigured(process.env);
+        sendJson(response, ready ? 200 : 503, {
+          status: ready ? "ready" : "not-ready",
+          availablePapers,
+          llmMode: LLM_MODE,
+          modelConfigured: modelCredentialConfigured(process.env),
+        });
       } else if (request.method === "GET" && url.pathname === "/api/papers") {
         sendJson(response, 200, { papers: [...papers.values()].map(paperView) });
       } else if (request.method === "POST" && url.pathname === "/api/chat") {

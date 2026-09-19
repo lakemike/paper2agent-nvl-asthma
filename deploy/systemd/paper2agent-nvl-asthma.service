@@ -1,0 +1,22 @@
+[Unit]
+Description=Paper2Agent NVL Asthma web runtime
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=%h/projects/paper2agent-nvl-asthma
+EnvironmentFile=%h/.config/paper2agent-nvl-asthma/runtime.env
+ExecStartPre=/usr/bin/test -s %h/projects/paper2agent-nvl-asthma/source/nvl-002l_S3_Asthma_2024-08.pdf
+ExecStartPre=/usr/bin/test -s %h/projects/paper2agent-nvl-asthma/secrets/nvl-permission.txt
+ExecStartPre=/usr/bin/test -s %h/projects/paper2agent-nvl-asthma/secrets/openrouter.key
+ExecStartPre=/usr/bin/docker info
+ExecStart=/usr/bin/docker compose --env-file %h/.config/paper2agent-nvl-asthma/runtime.env -f compose.yaml -f compose.nvl-permission.yaml -f compose.openrouter.yaml up -d --build --remove-orphans
+ExecReload=/usr/bin/docker compose --env-file %h/.config/paper2agent-nvl-asthma/runtime.env -f compose.yaml -f compose.nvl-permission.yaml -f compose.openrouter.yaml up -d --build --remove-orphans
+ExecStop=/usr/bin/docker compose --env-file %h/.config/paper2agent-nvl-asthma/runtime.env -f compose.yaml -f compose.nvl-permission.yaml -f compose.openrouter.yaml stop
+TimeoutStartSec=900
+TimeoutStopSec=120
+
+[Install]
+WantedBy=default.target
