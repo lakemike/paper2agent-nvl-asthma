@@ -7,7 +7,7 @@ The production host keeps the repository under `~/projects/paper2agent-nvl-asthm
 Create these files with mode `0600`:
 
 - `source/nvl-002l_S3_Asthma_2024-08.pdf` — the official 183-page PDF, SHA-256 `8b9540b03b4cd3c8f0276e07bf93dac20aa44e9a4dee6e29d1648124d1baa126`;
-- `secrets/nvl-permission.txt` — a concise operator record of the permission scope plus the SHA-256 of the original correspondence retained privately;
+- `secrets/nvl-permission.txt` — a concise operator record of the permission scope plus the SHA-256 of the privately retained digital original; for a physical-only original, record its custodian, storage reference, and confirmation date instead;
 - `secrets/openrouter.key` — a dedicated key restricted to `deepseek/deepseek-v4.1-flash` and a hard monthly budget.
 
 Never commit the inputs, the extracted SQLite volume, or the original permission correspondence.
