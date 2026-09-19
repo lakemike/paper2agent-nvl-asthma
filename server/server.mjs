@@ -32,7 +32,7 @@ const MAX_REQUESTS_PER_HOUR = boundedInteger("MAX_REQUESTS_PER_HOUR", 30, 1, 100
 const MAX_CONTEXT_CHUNKS = boundedInteger("MAX_CONTEXT_CHUNKS", 8, 3, 12);
 const MAX_CONCURRENT_CHATS = boundedInteger("MAX_CONCURRENT_CHATS", 4, 1, 32);
 const MAX_TRACKED_CLIENTS = boundedInteger("MAX_TRACKED_CLIENTS", 10000, 100, 100000);
-boundedInteger("MODEL_MAX_TOKENS", 1400, 200, 4000);
+boundedInteger("MODEL_MAX_TOKENS", 3000, 200, 4000);
 const papers = loadPaperConfigs(PAPER_ROOT);
 const db = openDatabase(DB_PATH);
 const rateWindows = new Map();
